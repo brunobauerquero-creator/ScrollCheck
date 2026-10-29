@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Scroll Check by ScrollWell Europe: a free 3-minute self-check on how social media affects you, with a 4-week plan of small changes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect x='16' y='24' width='120' height='96' rx='40' fill='%23FF6F59'/%3E%3Crect x='64' y='64' width='120' height='96' rx='40' fill='%23FEC601'/%3E%3C/svg%3E">
+<title>Scroll Check</title>
+<meta name="theme-color" content="#F7F0F5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* ScrollWell Europe app look: blush ground, white sticker cards, coral as the one accent per screen,
+   sky for calm, sunshine for wins. Single light theme by design (the brand has no dark theme). */
+:root{
+  color-scheme:light;
+  --blush:#F7F0F5; --blush-deep:#EFE3EC; --surface:#FFFFFF;
+  --coral:#FF6F59; --coral-soft:#FFE1DB; --coral-ink:#B8432F;
+  --sky:#66C7F4; --sky-soft:#DDF2FC; --sky-ink:#1A6F99;
+  --sun:#FEC601; --sun-soft:#FFF1B8;
+  --ink:#1F2A44; --ink-muted:#4A5470;
+  --pop:0 4px 0 rgba(31,42,68,.10);
+  --r-sm:12px; --r-md:20px; --r-lg:32px;
+  --f-display:"Fredoka","Nunito",system-ui,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* motion: strong ease-out for UI, press feedback 120ms, screen changes under 300ms */
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --press:120ms;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{background:var(--blush)}
+/* feel like an installed app: no tap flash, no font inflation, no page bounce behind the fixed tab bar */
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+/* controls: fire on tap without the double-tap wait, never select their label on long-press */
+button,a,[role="button"],input[type=range]{touch-action:manipulation}
+button,[role="button"],.tab,.chip,.pick{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* every pressable answers on finger-down, not on release */
+button{transition:transform var(--press) var(--ease-out),background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease}
+button:not(:disabled):active{transform:scale(0.97)}
+button:disabled{opacity:.4;cursor:default}
+.num-t{font-variant-numeric:tabular-nums}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--blush)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--sky-ink);font-weight:700}
+:focus-visible{outline:3px solid var(--sky-ink);outline-offset:2px;border-radius:8px}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;line-height:1.1;text-wrap:balance}
+.app{max-width:430px;margin-inline:auto;padding-block:0 112px}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(247,240,245,.82);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);display:flex;align-items:center;justify-content:space-between;padding-block:14px 10px;transition:box-shadow 200ms ease}
+/* scroll edge: a soft shadow only once content actually slides under the bar */
+body.scrolled .bar{box-shadow:0 10px 16px -14px rgba(31,42,68,.35)}
+.lock{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0}
+.lock svg{width:34px;height:34px;display:block}
+.wm{font:600 21px/1 var(--f-display);letter-spacing:-.2px}
+.wm span{background:var(--coral);border-radius:7px;padding:0 4px;margin-left:1px}
+.lock small{display:block;font:800 8.5px/1 var(--f-body);letter-spacing:3px;text-transform:uppercase;margin-top:3px;text-align:left}
+.badgecount{display:flex;align-items:center;gap:6px;background:var(--sun-soft);border-radius:999px;padding:5px 12px 5px 6px;font-weight:800;font-size:14px}
+.badgecount i{width:22px;height:22px;border-radius:50%;background:var(--sun);display:grid;place-items:center}
+.badgecount i svg{width:14px;height:14px}
+
+/* tab bar, fixed like a phone app */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(255,255,255,.84);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 -1px 0 rgba(31,42,68,.08);
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tabs-in{max-width:430px;margin-inline:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;border-radius:14px;font-size:11.5px;font-weight:800;color:var(--ink-muted);white-space:nowrap}
+.tab:active{transform:none}
+.tab:active .ti{transform:scale(0.92)}
+.ti{transition:transform var(--press) var(--ease-out),background-color 160ms ease}
+.tab svg{width:24px;height:24px}
+.tab[aria-selected="true"]{color:var(--ink)}
+.tab[aria-selected="true"] .ti{background:var(--coral-soft)}
+.ti{width:48px;height:30px;border-radius:999px;display:grid;place-items:center}
+
+main{padding-top:10px}
+.view{display:grid;gap:16px}
+
+/* building blocks */
+.card{background:var(--surface);border-radius:var(--r-md);padding:20px;box-shadow:var(--pop);display:grid;gap:12px;min-width:0}
+.eyebrow{font:800 12px/16px var(--f-body);letter-spacing:1.5px;text-transform:uppercase;color:var(--coral-ink)}
+.muted{color:var(--ink-muted)}
+.small{font-size:14px}
+.hl{background:var(--coral);border-radius:12px;padding:0 .14em}
+.hl-sun{background:var(--sun);border-radius:12px;padding:0 .14em}
+.tile{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;flex:none}
+.tile svg{width:26px;height:26px}
+.t-coral{background:var(--coral-soft)}.t-sky{background:var(--sky-soft)}.t-sun{background:var(--sun-soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:14px 22px;font-weight:800;font-size:17px;border:0;min-height:52px;width:100%}
+.btn-primary{background:var(--coral);color:var(--ink);box-shadow:var(--pop)}
+.btn-primary:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(31,42,68,.10)}
+.btn-ghost{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 2px var(--blush-deep)}
+.btn-row{display:grid;gap:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 13px;font:800 13.5px/18px var(--f-body);background:var(--sun-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.track{height:14px;border-radius:999px;background:var(--blush-deep);overflow:hidden}
+.track i{display:block;height:100%;border-radius:999px;background:var(--coral);transition:width .3s}
+.linkbtn{background:none;border:0;padding:0;font-weight:800;color:var(--sky-ink);text-decoration:underline;text-underline-offset:3px}
+
+/* welcome */
+.hero{display:grid;gap:14px;padding-top:8px}
+.hero h1{font-size:44px;letter-spacing:-1px;line-height:1.02}
+.hero .lede{font-size:18px;color:var(--ink-muted)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fact{background:var(--surface);border-radius:var(--r-md);padding:12px;box-shadow:var(--pop);display:grid;gap:2px;text-align:center}
+.fact b{font:600 26px/1.1 var(--f-display)}
+.fact span{font-size:12.5px;color:var(--ink-muted);line-height:1.3}
+.steps{display:grid;gap:14px}
+.step{display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center}
+.step b{display:block;font:600 19px/1.2 var(--f-display)}
+.step span{font-size:14.5px;color:var(--ink-muted)}
+.privacy{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink-muted)}
+
+/* quiz */
+.qhead{display:grid;gap:8px}
+.qmeta{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;color:var(--ink-muted)}
+.segs{display:grid;grid-template-columns:6fr 4fr 4fr 2fr;gap:5px}
+.seg{height:10px;border-radius:999px;background:var(--blush-deep);overflow:hidden}
+.seg i{display:block;height:100%;background:var(--coral);border-radius:999px;transition:width .25s}
+.segl{display:grid;grid-template-columns:6fr 4fr 4fr 2fr;gap:5px;font-size:11.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-muted)}
+.segl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.segl .on{color:var(--coral-ink)}
+.qcard{display:grid;gap:16px;background:var(--surface);border-radius:var(--r-lg);padding:22px 18px;box-shadow:var(--pop)}
+.qtop{display:flex;gap:12px;align-items:center}
+.qstem{font-size:14px;font-weight:700;color:var(--ink-muted)}
+.qtext{font:600 25px/1.15 var(--f-display);text-wrap:balance}
+.qhint{font-size:14px;color:var(--ink-muted)}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--blush);border:2px solid transparent;border-radius:16px;padding:12px 14px;font-size:16px;font-weight:700;min-height:52px}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--ink-muted)}
+.opt[aria-pressed="true"]{background:var(--coral-soft);border-color:var(--coral)}
+.opt[aria-pressed="true"] .k{background:var(--coral);color:var(--ink)}
+.pick{border:2px solid var(--blush-deep);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:15px;font-weight:800;min-height:42px}
+.pick[aria-pressed="true"]{background:var(--sky);border-color:var(--sky)}
+.timeread{font:600 52px/1 var(--f-display);letter-spacing:-1px}
+.timeread small{font:700 16px var(--f-body);color:var(--ink-muted);margin-left:6px;letter-spacing:0}
+/* a slider you can actually grab with a thumb: 32px knob on a thick track */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:12px;border-radius:999px;background:var(--blush-deep)}
+input[type=range]::-moz-range-track{height:12px;border-radius:999px;background:var(--blush-deep)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;margin-top:-10px;border-radius:50%;background:var(--coral);border:4px solid var(--surface);box-shadow:var(--pop)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--coral);border:4px solid var(--surface);box-shadow:var(--pop)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets .pick{min-height:40px;padding:6px 14px;font-size:14px}
+.scale11{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.scale11 .opt{justify-content:center;padding:10px 0;font:600 20px/1 var(--f-display);min-height:48px}
+.ends{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--ink-muted)}
+.qnav{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+/* questions slide in from the side you are travelling to: forward from the right, back from the left */
+.in-fwd{animation:in-fwd 240ms var(--ease-out)}
+.in-back{animation:in-back 240ms var(--ease-out)}
+@keyframes in-fwd{from{opacity:0;transform:translateX(18px)}}
+@keyframes in-back{from{opacity:0;transform:translateX(-18px)}}
+/* result and plan cards arrive in a short cascade; rare screens, so a little delight is fine */
+.stagger>*{animation:rise 320ms var(--ease-out) both}
+.stagger>*:nth-child(2){animation-delay:40ms}.stagger>*:nth-child(3){animation-delay:80ms}
+.stagger>*:nth-child(4){animation-delay:120ms}.stagger>*:nth-child(5){animation-delay:160ms}
+.stagger>*:nth-child(n+6){animation-delay:200ms}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.resume{display:flex;align-items:center;gap:12px;background:var(--sky-soft);border-radius:var(--r-md);padding:14px 16px}
+.resume p{flex:1;font-size:14.5px;font-weight:700}
+.resume .btn{width:auto;min-height:44px;padding:10px 18px;font-size:15px}
+
+/* results */
+.note{font-size:14px;background:var(--sun-soft);border-radius:var(--r-sm);padding:10px 12px}
+.pcard{border-radius:var(--r-lg);padding:22px;display:grid;gap:12px;box-shadow:var(--pop)}
+.pcard h1{font-size:34px;letter-spacing:-.5px}
+.pcard .lede{font-size:16px}
+.meter{display:grid;gap:8px}
+.meter-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.meter-top b{font:600 17px/1.2 var(--f-display)}
+.meter-top span{font:600 22px/1 var(--f-display)}
+.meter-top small{font:700 13px var(--f-body);color:var(--ink-muted)}
+.lvl{font-size:13px;font-weight:800;color:var(--ink-muted)}
+.twin{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bat{width:64px;height:118px;border:4px solid var(--ink);border-radius:16px;padding:5px;display:flex;flex-direction:column-reverse;gap:4px;position:relative;margin-inline:auto}
+.bat::before{content:"";position:absolute;top:-11px;left:18px;width:20px;height:7px;border-radius:4px 4px 0 0;background:var(--ink)}
+.bat i{display:block;flex:1;border-radius:6px;background:var(--blush-deep)}
+.bat i.f{background:var(--sky)}
+.center{text-align:center;justify-items:center}
+.big{font:600 30px/1 var(--f-display)}
+.insight{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:center}
+.insight b{display:block;font:600 17px/1.2 var(--f-display)}
+.insight span{font-size:14px;color:var(--ink-muted)}
+.support{background:var(--sky-soft);box-shadow:none}
+
+/* plan */
+.levelcard{display:grid;gap:10px}
+.lv{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;color:var(--ink-muted);text-align:center;line-height:1.2}
+.lv span{display:flex;flex-direction:column;align-items:center;gap:5px;width:20%}
+.lv i{display:block;width:14px;height:14px;border-radius:50%;background:var(--blush-deep)}
+.lv .done i{background:var(--coral)}
+.lv .now{color:var(--ink)}
+.lv .now i{background:var(--surface);border:4px solid var(--coral)}
+.week{display:grid;gap:10px}
+.week-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.week-h h2{font-size:21px}
+.week-h span{font-size:13px;font-weight:800;color:var(--ink-muted)}
+.acts{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;background:var(--surface);border-radius:var(--r-md);padding:14px;box-shadow:var(--pop)}
+.act.done{background:var(--sun-soft);box-shadow:none}
+.act.done .at{text-decoration:line-through;text-decoration-thickness:2px}
+.tick{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--blush-deep);background:var(--surface);display:grid;place-items:center;padding:0;margin:-4px}
+.tick.pop{animation:pop 280ms var(--ease-out)}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+.tick svg{opacity:0;width:18px;height:18px}
+.tick[aria-pressed="true"]{background:var(--sun);border-color:var(--sun)}
+.tick[aria-pressed="true"] svg{opacity:1}
+.at{font:600 17px/1.2 var(--f-display)}
+.ah{font-size:14px;color:var(--ink-muted);margin-top:3px}
+.am{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 9px;background:var(--blush)}
+.tag.q{background:var(--sky-soft)}
+.tag.fit{background:var(--coral-soft)}
+.rm{width:44px;height:44px;margin:-8px -8px 0 0;border-radius:50%;border:0;background:none;color:var(--ink-muted);display:grid;place-items:center;padding:0}
+.rm:active{background:var(--blush)}
+/* hover only where a real pointer can hover, so it never sticks after a tap */
+@media (hover:hover) and (pointer:fine){
+  .rm:hover{background:var(--blush)}
+  .opt:hover{border-color:var(--blush-deep)}
+  .pick:hover,.addto button:hover,.filt button:hover{border-color:var(--ink-muted)}
+  .btn-ghost:hover{box-shadow:inset 0 0 0 2px var(--ink-muted)}
+}
+.undo{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:7;width:min(398px,calc(100% - 32px));display:flex;align-items:center;gap:12px;
+  background:var(--ink);color:var(--blush);border-radius:var(--r-md);padding:12px 12px 12px 18px;box-shadow:0 12px 28px -12px rgba(31,42,68,.6);
+  transform:translate(-50%,0);opacity:1;transition:transform 260ms var(--ease-out),opacity 200ms ease}
+.undo[hidden]{display:flex!important;transform:translate(-50%,16px);opacity:0;pointer-events:none;visibility:hidden;transition:transform 180ms ease,opacity 150ms ease,visibility 0s 180ms}
+.undo p{flex:1;font-size:14.5px;font-weight:700;min-width:0}
+.undo button{border:0;background:var(--sun);color:var(--ink);border-radius:999px;padding:10px 16px;font-weight:800;font-size:14px;min-height:40px}
+.addto{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;font-size:13px;font-weight:700;color:var(--ink-muted)}
+.addto button{border:2px solid var(--blush-deep);background:var(--surface);border-radius:999px;min-width:44px;height:40px;font-weight:800;font-size:14px;padding:0 12px}
+.pool .act{grid-template-columns:1fr}
+.filt{display:flex;gap:6px;flex-wrap:wrap}
+.filt button{border:2px solid var(--blush-deep);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px;font-weight:800}
+.filt button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--blush)}
+.empty{font-size:14px;color:var(--ink-muted);padding:12px 14px;border:2px dashed var(--blush-deep);border-radius:var(--r-md)}
+.toast{font-size:14px;font-weight:800;color:var(--coral-ink);min-height:1.4em}
+textarea.fb{width:100%;min-height:140px;font:13px/1.4 ui-monospace,Menlo,monospace;border-radius:12px;border:2px solid var(--blush-deep);padding:10px;background:var(--surface);color:var(--ink)}
+
+/* progress */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;font-size:12px;font-weight:800;color:var(--ink-muted)}
+.d{width:34px;height:34px;margin:0 auto 4px;border-radius:50%;background:var(--blush-deep);display:grid;place-items:center}
+.d svg{width:20px;height:20px;opacity:0}
+.d.y{background:var(--sun)}
+.d.y svg{opacity:1}
+.d.today{box-shadow:0 0 0 3px var(--coral)}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px}
+.bd{display:grid;justify-items:center;gap:6px;text-align:center;font-size:12.5px;font-weight:800;line-height:1.25}
+.bd i{width:58px;height:58px;border-radius:50%;background:var(--sun);display:grid;place-items:center;box-shadow:var(--pop)}
+.bd i svg{width:28px;height:28px}
+.bd.lock i{background:var(--blush-deep);box-shadow:none}
+.bd.lock i svg{opacity:.45}
+.bd.lock{color:var(--ink-muted)}
+
+/* good news: a finite daily set, never an endless feed */
+.ndots{display:flex;gap:6px;align-items:center}
+.ndots i{width:28px;height:8px;border-radius:999px;background:var(--blush-deep);transition:background-color 300ms ease}
+.ndots i.on{background:var(--sun)}
+.ndots span{font-size:13px;font-weight:800;color:var(--ink-muted);margin-left:6px}
+.story{gap:10px}
+.story .nh{display:flex;gap:12px;align-items:center}
+.story .nh .tile{width:44px;height:44px;border-radius:14px}
+.ncat{font:800 11.5px/1.2 var(--f-body);letter-spacing:1.2px;text-transform:uppercase;color:var(--coral-ink)}
+.nplace{font-size:13px;font-weight:700;color:var(--ink-muted)}
+.story h2{font-size:22px;letter-spacing:-.2px}
+.story p.body{font-size:15.5px;color:var(--ink-muted);line-height:1.5}
+.nwin{display:flex;gap:8px;align-items:center;background:var(--sun-soft);border-radius:var(--r-sm);padding:8px 12px;font-size:14px;font-weight:800}
+.nwin svg{width:18px;height:18px;flex:none}
+.nfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.nfoot a{font-size:13.5px}
+.smile{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--blush-deep);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:44px;font-size:14px;font-weight:800}
+.smile svg{width:18px;height:18px}
+.smile[aria-pressed="true"]{background:var(--sun);border-color:var(--sun)}
+.smile.pop{animation:pop 280ms var(--ease-out)}
+.done-card{background:var(--sky-soft);box-shadow:none;text-align:center;justify-items:center}
+.done-card .tile{width:64px;height:64px;border-radius:50%;background:var(--surface)}
+.rules summary{cursor:pointer;font:600 17px/1.3 var(--f-display);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px}
+.rules summary::-webkit-details-marker{display:none}
+.rules summary::after{content:"+";font:600 22px/1 var(--f-display);color:var(--ink-muted)}
+.rules[open] summary::after{content:"−"}
+.rules ul{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px;color:var(--ink-muted)}
+.planlink{margin-top:10px;border:0;background:var(--sky-soft);border-radius:999px;padding:8px 14px;min-height:40px;font-weight:800;font-size:14px}
+@media (hover:hover) and (pointer:fine){ .smile:hover{border-color:var(--ink-muted)} }
+
+/* about */
+.prose{display:grid;gap:12px}
+.prose h2{font-size:22px;margin-top:6px}
+.prose p,.prose li{color:var(--ink-muted)}
+.prose ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.help{font-size:13px;color:var(--ink-muted);display:grid;gap:4px;padding-top:6px}
+.help b{color:var(--ink)}
+.num{font-weight:800;user-select:all}
+
+/* reduced motion keeps gentle fades that aid understanding, drops all movement */
+@media (prefers-reduced-motion:reduce){
+  *{transition-property:opacity,background-color,border-color!important}
+  .in-fwd,.in-back,.stagger>*{animation:fadeonly 160ms ease both!important}
+  .tick.pop{animation:none!important}
+  button:not(:disabled):active,.tab:active .ti{transform:none!important}
+}
+@keyframes fadeonly{from{opacity:0}}
+</style>
+<style>[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <button class="lock" id="home" aria-label="ScrollWell Europe, back to start">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><defs><clipPath id="mk"><rect x="16" y="24" width="120" height="96" rx="40"/></clipPath></defs><path d="M40 108 L26 148 L74 116 Z" fill="#FF6F59"/><rect x="16" y="24" width="120" height="96" rx="40" fill="#FF6F59"/><path d="M160 148 L174 188 L126 156 Z" fill="#FEC601"/><rect x="64" y="64" width="120" height="96" rx="40" fill="#FEC601"/><g clip-path="url(#mk)"><rect x="64" y="64" width="120" height="96" rx="40" fill="#66C7F4"/></g><circle cx="88" cy="86" r="5" fill="#1F2A44"/><circle cx="112" cy="86" r="5" fill="#1F2A44"/><path d="M86 100 Q100 113 114 100" fill="none" stroke="#1F2A44" stroke-width="5" stroke-linecap="round"/></svg>
+      <span><span class="wm">scroll<span>well</span></span><small>Europe</small></span>
+    </button>
+    <span class="badgecount" id="bc" aria-label="Badges earned"><i></i><span>0</span></span>
+  </header>
+  <main>
+    <section class="view" id="v-check"></section>
+    <section class="view" id="v-plan" hidden></section>
+    <section class="view" id="v-news" hidden></section>
+    <section class="view" id="v-progress" hidden></section>
+    <section class="view" id="v-about" hidden></section>
+  </main>
+</div>
+<nav class="tabs" aria-label="Sections"><div class="tabs-in" role="tablist">
+  <button class="tab" role="tab" data-view="check" aria-selected="true"><span class="ti" data-icon="heart"></span>Check</button>
+  <button class="tab" role="tab" data-view="plan" aria-selected="false"><span class="ti" data-icon="target"></span>My plan</button>
+  <button class="tab" role="tab" data-view="news" aria-selected="false"><span class="ti" data-icon="sun"></span>Good news</button>
+  <button class="tab" role="tab" data-view="progress" aria-selected="false"><span class="ti" data-icon="trophy"></span>Progress</button>
+  <button class="tab" role="tab" data-view="about" aria-selected="false"><span class="ti" data-icon="question"></span>About</button>
+</div></nav>
+<div class="undo" id="undo" role="status" aria-live="polite" hidden><p id="undoText"></p><button id="undoBtn">Undo</button></div>
+
+<script>
+/* ------------------------------------------------------------ icons (ScrollWell set, 24px grid, 2px ink strokes) */
+const ICON_PATHS = {
+  phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chat:'<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  belloff:'<path d="M6 16v-5a6 6 0 0 1 9.5-4.9M18 11v5l1.5 2H8"/><path d="M10 20.5a2 2 0 0 0 4 0"/><path d="M3.5 3.5l17 17"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
+  users:'<circle cx="9" cy="8.5" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.5a6 6 0 0 1 3 5.5"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/>',
+  question:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5"/><path d="M12 17.2v.1"/>',
+  tick:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  leaf:'<path d="M5 19C5 10 10 5 20 4c0 10-5 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  wave:'<path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/>',
+  paw:'<circle cx="6.5" cy="10" r="1.8"/><circle cx="10" cy="6.2" r="1.8"/><circle cx="14" cy="6.2" r="1.8"/><circle cx="17.5" cy="10" r="1.8"/><path d="M8 17.2c0-2.6 1.9-4.7 4-4.7s4 2.1 4 4.7c0 1.4-1.6 1.9-4 1.9s-4-.5-4-1.9z"/>',
+  smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14a4 4 0 0 0 7 0"/><path d="M9 9.5v.1M15 9.5v.1"/>',
+};
+const icon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="#1F2A44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[n]}</svg>`;
+
+/* ------------------------------------------------------------ content, worded as in the questionnaire */
+const BLOCKS = [{ id:"habits", label:"Habits" }, { id:"pull", label:"Pull" }, { id:"comp", label:"Comparison" }, { id:"you", label:"You" }];
+const FREQ = ["Never","Rarely","Sometimes","Often","Very often"];
+const AGREE = ["Strongly disagree","Disagree","Neither agree nor disagree","Agree","Strongly agree"];
+const APPS = ["Instagram","TikTok","YouTube","WhatsApp","Snapchat","X","BeReal","Pinterest","Reddit","LinkedIn","Facebook"];
+const s5 = (labels) => labels.map((l, i) => ({ v: i + 1, l }));
+
+const QUESTIONS = [
+  { id:"TIME", b:"habits", type:"time", ic:"clock", text:"On a typical day, roughly how much time do you spend on social media?", hint:"Your best estimate is fine." },
+  { id:"APPS", b:"habits", type:"multi", ic:"phone", text:"Which of these apps do you open every day?", hint:"Select all that apply." },
+  { id:"PASSIVE", b:"habits", type:"single", ic:"chat", text:"When you are on social media, what do you mostly do?",
+    opts:s5(["Mostly scroll and watch","More scrolling than chatting","About half and half","More chatting and posting","Mostly chat, post or create"]) },
+  { id:"BED", b:"habits", type:"single", ic:"moon", text:"In a typical week, on how many nights do you use social media in the last 30 minutes before falling asleep?",
+    opts:[{v:0,l:"0 nights"},{v:1.5,l:"1 to 2 nights"},{v:3.5,l:"3 to 4 nights"},{v:5.5,l:"5 to 6 nights"},{v:7,l:"Every night"}] },
+  { id:"MORNING", b:"habits", type:"single", ic:"sun", text:"On a typical day, do you check social media within 10 minutes of waking up?",
+    opts:[{v:1,l:"Yes, usually"},{v:0,l:"No, usually not"}] },
+  { id:"TRIGGER", b:"habits", type:"single", ic:"question", text:"What most often makes you open a social media app?",
+    opts:[{v:"boredom",l:"Boredom"},{v:"habit",l:"Pure habit, I don't really decide"},{v:"lonely",l:"Feeling lonely"},{v:"stress",l:"Stress, or avoiding something"},{v:"fomo",l:"Fear of missing out"},{v:"info",l:"Looking for information or ideas"}] },
+  ...["stay on social media longer than you planned?","use social media to escape bad moods or problems?","try to use social media less, without success?","lose sleep, study or work time because of social media?"]
+    .map((t, i) => ({ id:`PULL${i+1}`, b:"pull", type:"single", ic:"phone", stem:"In a typical week, how often do you…", text:t, opts:s5(FREQ) })),
+  ...["When I scroll, I compare my life with the lives I see.","Other people's posts make my own life feel less exciting.","I compare my looks with people I see on social media.","After scrolling, I feel worse about what I've achieved."]
+    .map((t, i) => ({ id:`COMP${i+1}`, b:"comp", type:"single", ic:"users", stem:"How much do you agree?", text:t, opts:s5(AGREE) })),
+  { id:"LS", b:"you", type:"scale11", ic:"heart", text:"Overall, how satisfied are you with your life these days?" },
+  { id:"GOAL", b:"you", type:"single", ic:"target", text:"If you could change one thing about how you use social media, what would it be?",
+    opts:[{v:"time",l:"Spend less time on it overall"},{v:"bed",l:"Use it less in bed before sleeping"},{v:"focus",l:"Get distracted by it less while studying or working"},{v:"comp",l:"Compare myself less with what I see on it"},{v:"habit",l:"Check it less often out of habit"},{v:"none",l:"Nothing, I'm happy with how I use it"}] },
+];
+
+const EXAMPLE = { TIME:195, APPS:["Instagram","TikTok","WhatsApp","YouTube"], PASSIVE:2, BED:5.5, MORNING:1, TRIGGER:"boredom",
+  PULL1:4, PULL2:3, PULL3:3, PULL4:3, COMP1:4, COMP2:4, COMP3:3, COMP4:4, LS:6, GOAL:"bed" };
+
+const PROFILES = {
+  intentional:{ name:"The Intentional User", tone:"t-sky", bg:"var(--sky-soft)", ic:"sun",
+    lede:"You mostly use social media on your own terms. Your plan protects what already works and adds a few extra wins." },
+  autopilot:{ name:"The Autopilot", tone:"t-sun", bg:"var(--sun-soft)", ic:"phone",
+    lede:"Comparing is not your main thing. The pull is: apps open out of habit or boredom. Your plan adds a little friction and gives you back your defaults." },
+  comparer:{ name:"The Comparer", tone:"t-coral", bg:"var(--coral-soft)", ic:"users",
+    lede:"You don't feel hooked, but what you see sticks with you. Your plan reshapes your feed so it lifts you up instead of leaving you behind." },
+  overloaded:{ name:"The Overloaded", tone:"t-coral", bg:"var(--coral-soft)", ic:"heart",
+    lede:"A strong pull and a lot of comparing at the same time. That is a lot to carry. Your plan starts small on both and builds up week by week." },
+};
+
+const CATS = { time:"Time and habits", feed:"Your feed", offline:"Offline life", mind:"Mindset" };
+/* M01 to M10 are the actions rated in Q25 of the questionnaire; yes = share answering "Yes" in the first wave (n = 20, 28 Oct 2026). w = fit with [pull, comparison, low life satisfaction] */
+const ACTIONS = [
+  { id:"M01", yes:70, q:"Q25a", cat:"time", e:1, w:[.9,.2,0], goal:["focus","habit"], title:"Turn off non-human notifications", how:"Turn off notifications for likes and suggestions. Keep messages from friends." },
+  { id:"M02", yes:65, q:"Q25a", cat:"time", e:2, w:[1,0,0], goal:["time"], title:"Set a daily time limit", how:"Put a daily limit on your most-used app in Screen Time or Digital Wellbeing." },
+  { id:"M05", yes:50, q:"Q25a", cat:"time", e:1, w:[.7,0,0], goal:["habit","focus"], title:"Move social apps off your home screen", how:"Put them in a folder on the last page. Out of sight, out of thumb." },
+  { id:"M08", yes:45, q:"Q25a", cat:"time", e:1, w:[.6,0,0], goal:["bed"], title:"Black and white after 21:00", how:"Schedule grayscale in your accessibility settings. Grey feeds are far less sticky at night." },
+  { id:"M03", yes:40, q:"Q25b", cat:"time", e:2, w:[.8,0,.4], goal:["bed"], title:"Charge your phone outside the bedroom", how:"Your phone sleeps in another room. A cheap alarm clock wakes you up." },
+  { id:"M06", yes:65, q:"Q25b", cat:"time", e:2, w:[.7,0,.3], goal:["habit","focus"], title:"No social media in the first 30 minutes", how:"No feeds until you have showered and had breakfast." },
+  { id:"M09", yes:50, q:"Q25b", cat:"offline", e:2, w:[.4,0,.8], goal:["time"], title:"Swap one scroll for a walk or workout", how:"Three times a week, replace one scrolling session with a walk, a run or the gym." },
+  { id:"M04", yes:55, q:"Q25c", cat:"feed", e:1, w:[0,1,.3], goal:["comp"], title:"Unfollow or mute 10 accounts", how:"Mute anyone who leaves you feeling behind rather than inspired." },
+  { id:"M07", yes:55, q:"Q25c", cat:"offline", e:3, w:[.8,.2,.4], goal:["time"], title:"Take one offline half-day a week", how:"Pick a fixed slot, for example Sunday morning, and log out of every social app." },
+  { id:"M10", yes:25, q:"Q25c", cat:"time", e:3, w:[1,.4,0], goal:["time","habit"], title:"Delete your most-used app for 7 days", how:"Reinstall it after a week only if you truly missed it." },
+  { id:"A01", cat:"mind", e:1, w:[.6,0,0], goal:["habit"], title:"Ask: why am I opening this?", how:"Name the reason before each unlock. Bored? Pick something from your offline list." },
+  { id:"A02", cat:"feed", e:1, w:[.3,.6,0], goal:["comp"], title:"Switch to the Following feed", how:"Use Following instead of For You, so you see people you chose." },
+  { id:"A03", cat:"feed", e:1, w:[0,.7,0], goal:["comp"], title:"Hide like counts", how:"Instagram lets you hide likes on other people's posts. Numbers invite ranking." },
+  { id:"A04", cat:"mind", e:1, w:[0,.4,.9], goal:["comp","none"], title:"Three good things", how:"Every evening, note three things that went well in your own day." },
+  { id:"A05", cat:"offline", e:2, w:[0,.3,.8], goal:["none"], title:"See a friend, not a story", how:"Once a week, meet someone you would otherwise only watch online." },
+  { id:"A06", cat:"offline", e:2, w:[0,0,1], goal:[], title:"Talk it through", how:"If you have felt low for a while, talk to someone you trust or your university's support service." },
+  // the bridge to the Good news tab: replaces the first feed of the day with five finite, uplifting stories
+  { id:"A07", cat:"mind", e:1, w:[.6,.4,.3], goal:["habit","comp"], title:"Good news first", how:"In the morning, read today's five good-news stories here instead of opening a feed. Then put the phone away.", link:"news" },
+];
+
+/* Good news: real, sourced stories. Editorial rule: collective wins, nature, animals and science that helps many.
+   No prizes, rankings, ages, rich lists or individual high achievers, so there is no one to measure yourself against. */
+const NEWS_CATS = { nature:{ l:"Nature", ic:"leaf", t:"t-sky" }, animals:{ l:"Animals", ic:"paw", t:"t-sun" }, ocean:{ l:"Ocean", ic:"wave", t:"t-sky" },
+  planet:{ l:"Planet", ic:"globe", t:"t-sun" }, health:{ l:"Health", ic:"heart", t:"t-coral" }, community:{ l:"Community", ic:"users", t:"t-coral" } };
+const NEWS = [
+  { id:"N1", cat:"nature", place:"Spain and Portugal", when:"June 2026", title:"The Iberian lynx sets a new record",
+    body:"In 2002, fewer than 100 Iberian lynx were left. The 2025 census counted 2,663, the most since joint monitoring began, with 952 cubs born in a single year. Protection, breeding and reintroduction in both countries made it possible.",
+    win:"Patience and protection pay off", src:"Spanish Ministry for the Ecological Transition", url:"https://www.miteco.gob.es/es/prensa/ultimas-noticias/2026/junio/la-poblacion-de-lince-iberico-alcanzo-los-2-663-ejemplares-en-20.html" },
+  { id:"N2", cat:"animals", place:"Dallas Zoo, USA", when:"July 2026", title:"A baby elephant joins his herd",
+    body:"After a pregnancy of about 22 months, the elephant Mlilo gave birth to a 104 kg calf. Within an hour he was standing and drinking, while the rest of the herd helped him up and kept watch.",
+    win:"The herd looks after its youngest", src:"KERA News", url:"https://www.keranews.org/news/2026-08-05/dallas-zoo-baby-elephant" },
+  { id:"N3", cat:"ocean", place:"US Atlantic coast", when:"May 2026", title:"Most right whale calves since 2009",
+    body:"Researchers counted 23 North Atlantic right whale calves this calving season, the highest number since 2009. Survey teams logged around 500 sightings of 129 different whales.",
+    win:"Slow recoveries are still recoveries", src:"NOAA Fisheries", url:"https://www.fisheries.noaa.gov/feature-story/good-news-stories-endangered-species-day-2026" },
+  { id:"N4", cat:"planet", place:"Antarctica", when:"December 2025", title:"The ozone hole keeps shrinking",
+    body:"The 2025 ozone hole was one of the smallest since 1992 and closed on 1 December, the earliest since 2019. Thanks to the Montreal Protocol, agreed by every country in the world, the ozone layer is on track to heal by mid-century.",
+    win:"When the world agrees, it works", src:"World Meteorological Organization", url:"https://wmo.int/node/38096" },
+  { id:"N5", cat:"health", place:"Timor-Leste", when:"May 2026", title:"A whole country free of malaria",
+    body:"Timor-Leste received the World Health Organization’s malaria-free certificate in May 2026. More than twenty years of work by health workers, communities and families who took up prevention ended local transmission.",
+    win:"Prevention, one family at a time", src:"Tatoli", url:"https://en.tatoli.tl/2026/05/26/timor-leste-formally-receives-who-malaria-free-certification-at-world-health-assembly/15/" },
+  { id:"N6", cat:"nature", place:"Europe", when:"April 2026", title:"Europe’s bison are back",
+    body:"After the last wild bison was shot in 1927, fewer than 60 were left in zoos. Today about 7,000 roam free from Poland to Romania. In the Netherlands, songbirds even line their nests with shed bison hair.",
+    win:"Nature returns when given room", src:"Euronews", url:"https://euronews.com/2026/04/08/from-biodiversity-to-carbon-capture-saving-bison-from-extinction-has-brought-big-benefits-" },
+  { id:"N7", cat:"ocean", place:"Hawaiʻi, USA", when:"May 2026", title:"Fewer seals caught in old nets",
+    body:"Teams cleared old fishing gear and marine debris from remote Hawaiian islands. Entanglements of endangered Hawaiian monk seals fell by up to 70 percent on some islands.",
+    win:"Cleaning up makes a real difference", src:"NOAA Fisheries", url:"https://www.fisheries.noaa.gov/feature-story/good-news-stories-endangered-species-day-2026" },
+  { id:"N8", cat:"animals", place:"Kei Islands, Indonesia", when:"May 2026", title:"Leatherback turtles get a safer beach",
+    body:"Since 2017, a partnership with WWF Indonesia has worked to protect leatherback turtles on the Kei Islands. The number of turtles and nests taken for food has fallen by 85 percent.",
+    win:"Local care protects a global species", src:"NOAA Fisheries", url:"https://www.fisheries.noaa.gov/feature-story/good-news-stories-endangered-species-day-2026" },
+  { id:"N9", cat:"community", place:"Plovdiv, Bulgaria", when:"July 2026", title:"A year for volunteers",
+    body:"The UN made 2026 the International Volunteer Year. In Plovdiv, about 20 young people are building a volunteer network and small campaigns for their community, ending with a photo exhibition on 5 December, International Volunteer Day.",
+    win:"Small local actions add up", src:"UN Volunteers", url:"https://knowledge.unv.org/ivy/events/a-new-initiative-marks-the-international-volunteer-year-2026-in-plovdiv-bulgaria" },
+];
+const NEWS_PER_DAY = 5;
+// a fixed five per calendar day, rotating through the pool, so the feed always ends
+function todaysNews() {
+  const day = Math.floor(Date.now() / 864e5), start = (day * NEWS_PER_DAY) % NEWS.length;
+  return Array.from({ length:NEWS_PER_DAY }, (_, i) => NEWS[(start + i) % NEWS.length]);
+}
+const ACT = Object.fromEntries(ACTIONS.map(a => [a.id, a]));
+const WEEKS = [
+  { name:"Easy starts", sub:"small switches" },
+  { name:"Add friction", sub:"make scrolling harder" },
+  { name:"Go deeper", sub:"change what you see" },
+  { name:"Stretch", sub:"show you're in charge" },
+];
+const LEVELS = ["Doom-scroller","Aware","Mindful","Balanced","ScrollWell pro"];
+
+/* ------------------------------------------------------------ helpers and storage */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const fmtMin = (m) => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${r} min` : `${h} h`) : `${r} min`; };
+const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const today = () => new Date().toISOString().slice(0, 10);
+const store = {
+  key:"scrollwell.check.v2",
+  get(){ try { return JSON.parse(localStorage.getItem(this.key)) || {}; } catch { return {}; } },
+  set(v){ try { localStorage.setItem(this.key, JSON.stringify(v)); } catch {} },
+};
+const S = { view:"check", screen:"intro", qi:0, answers:{}, cat:"all", saved:store.get() };
+const save = () => { if (!S.saved.result?.example) store.set(S.saved); };
+
+/* ------------------------------------------------------------ scoring (own answers only, no ranking against others) */
+function score(a) {
+  const pull = +mean([1,2,3,4].map(i => a[`PULL${i}`])).toFixed(1);
+  const comp = +mean([1,2,3,4].map(i => a[`COMP${i}`])).toFixed(1);
+  // split at the scale midpoint ("Sometimes" / "Neither"); real survey data will set the split later
+  const hiP = pull >= 3, hiC = comp >= 3;
+  const profile = hiP ? (hiC ? "overloaded" : "autopilot") : (hiC ? "comparer" : "intentional");
+  return { pull, comp, ls:a.LS, time:a.TIME, profile };
+}
+const band = (v) => v >= 4 ? "High" : v >= 3 ? "Medium" : "Low";
+
+function recommend(a, s) {
+  const zP = (s.pull - 1) / 4, zC = (s.comp - 1) / 4, zL = 1 - s.ls / 10;
+  const boost = { M01:a.TRIGGER === "fomo", M02:a.TIME >= 180, M03:a.BED >= 3.5, M08:a.BED >= 1.5, M06:a.MORNING === 1,
+    M05:a.TRIGGER === "habit", A01:["boredom","habit"].includes(a.TRIGGER), M09:a.TRIGGER === "stress", A05:a.TRIGGER === "lonely",
+    A02:(a.APPS || []).some(p => ["TikTok","Instagram","X"].includes(p)), A03:(a.APPS || []).includes("Instagram"), M10:a.TIME >= 240, M07:a.TIME >= 240,
+    A07:a.MORNING === 1 };
+  const ranked = ACTIONS.map(x => ({ id:x.id, e:x.e, cat:x.cat,
+    sc: 1.5 * (x.w[0] * zP + x.w[1] * zC + x.w[2] * zL) + (boost[x.id] ? .35 : 0) + (x.goal.includes(a.GOAL) ? .5 : 0) + .8 * ((x.yes ?? 45) / 100) }))
+    .sort((p, q) => q.sc - p.sc);
+  if (s.ls <= 4) { const i = ranked.findIndex(x => x.id === "A06"); ranked.unshift(...ranked.splice(i, 1)); }
+  const slots = [{ n:3, ok:e => e === 1 }, { n:3, ok:e => e <= 2 }, { n:2, ok:e => e >= 1 }, { n:2, ok:e => e >= 2 }];
+  const used = new Set(), weeks = [[], [], [], []];
+  slots.forEach((slot, w) => {
+    const pick = (strict) => { for (const c of ranked) {
+      if (weeks[w].length >= slot.n) return;
+      if (used.has(c.id) || (c.id === "A06" && s.ls > 4)) continue;
+      if (strict && !slot.ok(c.e)) continue;
+      weeks[w].push(c.id); used.add(c.id);
+    } };
+    pick(true); pick(false);
+  });
+  return { weeks, done:{} };
+}
+
+/* ------------------------------------------------------------ navigation */
+function setView(v, top = true) {
+  S.view = v;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === v)));
+  document.querySelectorAll(".view").forEach(el => { el.hidden = el.id !== `v-${v}`; });
+  S.enter = true; // the first render of a screen may cascade in; re-renders after a tap must not
+  ({ check:renderCheck, plan:renderPlan, news:renderNews, progress:renderProgress, about:renderAbout })[v]();
+  S.enter = false;
+  try { history.replaceState(null, "", v === "check" ? location.pathname + location.search : `#${v}`); } catch {}
+  if (top) window.scrollTo({ top:0 });
+  renderBadgeCount();
+}
+
+/* ------------------------------------------------------------ CHECK */
+function renderCheck() {
+  if (S.screen === "quiz") return renderQuestion();
+  if (S.screen === "result" && S.saved.result) return renderResult();
+  renderIntro();
+}
+
+function renderIntro() {
+  const has = !!S.saved.result, paused = S.qi > 0 && !!S.answers;
+  $("#v-check").className = "view";
+  $("#v-check").innerHTML = `
+    ${paused ? `<div class="resume"><p>You stopped at question ${S.qi + 1} of ${QUESTIONS.length}. Your answers are kept.</p><button class="btn btn-primary" id="resume">Continue</button></div>` : ""}
+    <div class="hero">
+      <span class="eyebrow">Free self-check, ages 18 to 29</span>
+      <h1>How is your scrolling <span class="hl">treating you?</span></h1>
+      <p class="lede">16 quick taps, about 3 minutes. Get your profile and a 4-week plan you choose yourself.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>3 min</b><span>to finish the check</span></div>
+      <div class="fact"><b>16</b><span>short questions</span></div>
+      <div class="fact"><b>28</b><span>days of small steps</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="start">Start the check</button>
+      <button class="btn btn-ghost" id="${has ? "last" : "example"}">${has ? "See my last result" : "See an example result"}</button>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step"><span class="tile t-coral">${icon("phone")}</span><div><b>Your habits</b><span>Time, apps, nights and mornings, and why you open an app.</span></div></div>
+        <div class="step"><span class="tile t-sky">${icon("users")}</span><div><b>Your profile</b><span>One of four profiles, from your own answers only. No ranking against anyone.</span></div></div>
+        <div class="step"><span class="tile t-sun">${icon("target")}</span><div><b>Your plan</b><span>About ten small actions over four weeks. Swap any of them.</span></div></div>
+      </div>
+    </div>
+    <p class="privacy">${icon("check").replace("<svg", '<svg width="20" height="20"')}Your answers stay on this device. Nothing is sent anywhere.</p>`;
+  $("#start").onclick = startQuiz;
+  $("#resume") && ($("#resume").onclick = () => { S.screen = "quiz"; renderQuestion(1); });
+  $("#example") && ($("#example").onclick = () => finish({ ...EXAMPLE }, true));
+  $("#last") && ($("#last").onclick = () => { S.screen = "result"; renderCheck(); });
+}
+
+function startQuiz() { S.answers = { TIME:120, APPS:[] }; S.qi = 0; S.screen = "quiz"; renderQuestion(1); window.scrollTo({ top:0 }); }
+
+/* dir: 1 = forward, -1 = back, 0 = same question re-rendered (no motion) */
+function renderQuestion(dir = 0) {
+  const q = QUESTIONS[S.qi], a = S.answers;
+  $("#v-check").className = "view";
+  const segs = BLOCKS.map(b => { const list = QUESTIONS.filter(x => x.b === b.id); const done = list.filter(x => QUESTIONS.indexOf(x) < S.qi).length;
+    return `<div class="seg"><i style="width:${done / list.length * 100}%"></i></div>`; }).join("");
+  const labels = BLOCKS.map(b => `<span class="${b.id === q.b ? "on" : ""}">${b.label}</span>`).join("");
+  let body = "";
+  if (q.type === "time") {
+    body = `<div class="timeread" id="tread" aria-live="polite">${fmtMin(a.TIME)}<small>a day</small></div>
+      <input type="range" id="trange" min="0" max="600" step="15" value="${a.TIME}" aria-label="Minutes per day on social media" aria-valuetext="${fmtMin(a.TIME)} a day">
+      <div class="ends"><span>0</span><span>10 hours</span></div>
+      <div class="presets" role="group" aria-label="Quick picks">${[60, 120, 180, 240, 300].map(m =>
+        `<button class="pick" data-m="${m}" aria-pressed="${a.TIME === m}">${m / 60} h</button>`).join("")}</div>`;
+  } else if (q.type === "multi") {
+    body = `<div class="chips" role="group" aria-label="Apps">${APPS.map(p => `<button class="pick" data-p="${esc(p)}" aria-pressed="${a.APPS.includes(p)}">${esc(p)}</button>`).join("")}</div>`;
+  } else if (q.type === "scale11") {
+    body = `<div class="scale11" role="group" aria-label="0 to 10">${Array.from({ length:11 }, (_, v) =>
+      `<button class="opt" data-v="${v}" aria-pressed="${a.LS === v}">${v}</button>`).join("")}</div>
+      <div class="ends"><span>0 Not at all satisfied</span><span>10 Completely satisfied</span></div>`;
+  } else {
+    body = `<div class="opts" role="group" aria-label="Answer">${q.opts.map((o, i) =>
+      `<button class="opt" data-v='${JSON.stringify(o.v)}' aria-pressed="${a[q.id] === o.v}"><span class="k">${i + 1}</span>${esc(o.l)}</button>`).join("")}</div>`;
+  }
+  const needsNext = q.type === "time" || q.type === "multi";
+  $("#v-check").innerHTML = `
+    <div class="qhead">
+      <div class="qmeta"><span>Question ${S.qi + 1} of ${QUESTIONS.length}</span><button class="linkbtn" id="quit">Exit</button></div>
+      <div class="segs" aria-hidden="true">${segs}</div>
+      <div class="segl" aria-hidden="true">${labels}</div>
+    </div>
+    <div class="qcard ${dir > 0 ? "in-fwd" : dir < 0 ? "in-back" : ""}">
+      <div class="qtop"><span class="tile ${q.b === "comp" ? "t-coral" : q.b === "you" ? "t-sun" : "t-sky"}">${icon(q.ic)}</span>${q.stem ? `<p class="qstem">${esc(q.stem)}</p>` : ""}</div>
+      <p class="qtext">${esc(q.text)}</p>
+      ${q.hint ? `<p class="qhint">${esc(q.hint)}</p>` : ""}
+      ${body}
+    </div>
+    <div class="qnav">
+      <button class="btn btn-ghost" id="back" ${S.qi === 0 ? "disabled" : ""}>Back</button>
+      ${needsNext ? `<button class="btn btn-primary" id="next">${q.type === "multi" && !a.APPS.length ? "None of these" : "Continue"}</button>` : `<span></span>`}
+    </div>`;
+  // leaving keeps the answers, so the intro can offer "Continue"
+  $("#quit").onclick = () => { S.screen = S.saved.result ? "result" : "intro"; renderCheck(); };
+  $("#back").onclick = back;
+  if (needsNext) $("#next").onclick = () => next();
+  if (q.type === "time") {
+    const r = $("#trange");
+    const show = () => {
+      $("#tread").innerHTML = `${fmtMin(a.TIME)}<small>a day</small>`;
+      r.setAttribute("aria-valuetext", `${fmtMin(a.TIME)} a day`);
+      document.querySelectorAll("[data-m]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.m === a.TIME)));
+    };
+    r.oninput = () => { a.TIME = clamp(+r.value, 0, 600); show(); };
+    document.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { a.TIME = +b.dataset.m; r.value = a.TIME; show(); });
+  } else if (q.type === "multi") {
+    document.querySelectorAll("[data-p]").forEach(b => b.onclick = () => {
+      const p = b.dataset.p, on = a.APPS.includes(p);
+      a.APPS = on ? a.APPS.filter(x => x !== p) : [...a.APPS, p];
+      b.setAttribute("aria-pressed", String(!on));
+      $("#next").textContent = a.APPS.length ? "Continue" : "None of these";
+    });
+  } else {
+    document.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(b));
+  }
+}
+/* one answer per question: a double tap during the short confirmation pause must not skip a question */
+function choose(b, viaKey = false) {
+  if (S.advancing) return;
+  const q = QUESTIONS[S.qi];
+  S.answers[q.id] = JSON.parse(b.dataset.v);
+  document.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  S.advancing = true;
+  setTimeout(() => { S.advancing = false; next(viaKey); }, viaKey ? 0 : 180); // a beat so the tap registers visibly
+}
+function next(viaKey = false) {
+  if (S.qi < QUESTIONS.length - 1) { S.qi++; renderQuestion(viaKey ? 0 : 1); window.scrollTo({ top:0 }); }
+  else finish(S.answers, false);
+}
+function back(viaKey = false) { if (S.qi > 0) { S.qi--; renderQuestion(viaKey === true ? 0 : -1); } }
+/* keyboard on desktop: number keys answer, Enter continues, Left goes back; no motion for key presses */
+document.addEventListener("keydown", (e) => {
+  if (S.view !== "check" || S.screen !== "quiz" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const q = QUESTIONS[S.qi];
+  if (e.key === "ArrowLeft") { back(true); return; }
+  if (e.key === "Enter" && (q.type === "time" || q.type === "multi") && document.activeElement?.tagName !== "BUTTON") { next(true); return; }
+  if (/^[0-9]$/.test(e.key) && q.type !== "time" && q.type !== "multi") {
+    const opts = [...document.querySelectorAll(".opt")];
+    const b = q.type === "scale11" ? opts[+e.key] : opts[+e.key - 1];
+    if (b) choose(b, true);
+  }
+});
+
+function finish(answers, example) {
+  const s = score(answers);
+  S.saved.result = { answers, scores:s, date:today(), example };
+  S.qi = 0; // the check is complete, so there is nothing to resume
+  S.saved.plan = recommend(answers, s);
+  if (!example) { S.saved.checkins = S.saved.checkins || []; store.set(S.saved); }
+  S.screen = "result"; setView("check");
+}
+
+function insights(a) {
+  const out = [];
+  out.push({ ic:"clock", t:"t-sky", b:`${fmtMin(a.TIME)} a day`, s:`That is about ${Math.round(a.TIME * 7 / 60)} hours a week on social media.` });
+  if (a.BED >= 3.5) out.push({ ic:"moon", t:"t-coral", b:"Scrolling before sleep", s:`On about ${Math.round(a.BED)} nights a week. Sleep is the easiest place to win time back.` });
+  else if (a.MORNING === 1) out.push({ ic:"sun", t:"t-coral", b:"Phone first thing", s:"You check social media within 10 minutes of waking up." });
+  const trig = { boredom:"Boredom", habit:"Pure habit", lonely:"Feeling lonely", stress:"Stress", fomo:"Fear of missing out", info:"Looking for ideas" }[a.TRIGGER];
+  if (trig) out.push({ ic:"question", t:"t-sun", b:`Main trigger: ${trig.toLowerCase()}`, s:"Your plan puts a small pause right where this starts." });
+  return out.slice(0, 3);
+}
+
+function renderResult() {
+  const { scores:s, answers:a, example, date } = S.saved.result, P = PROFILES[s.profile];
+  const filled = Math.round(s.ls / 2);
+  const concern = s.ls <= 4 || s.pull >= 4.5;
+  $("#v-check").className = "view" + (S.enter ? " stagger" : "");
+  $("#v-check").innerHTML = `
+    ${example ? `<p class="note"><b>Example result.</b> Made-up answers to show how it works. <button class="linkbtn" id="real">Take the real check</button></p>` : ""}
+    <div class="pcard" style="background:${P.bg}">
+      <span class="eyebrow" style="color:var(--ink)">Your profile, ${date}</span>
+      <div style="display:flex;gap:12px;align-items:center"><span class="tile" style="background:var(--surface)">${icon(P.ic)}</span><h1>${P.name}</h1></div>
+      <p class="lede">${P.lede}</p>
+    </div>
+    <div class="card">
+      <div class="meter"><div class="meter-top"><b>Pull of the apps</b><span>${s.pull.toFixed(1)}<small> / 5</small></span></div>
+        <div class="track"><i style="width:${(s.pull - 1) / 4 * 100}%"></i></div><span class="lvl">${band(s.pull)}: how often apps keep you longer than planned</span></div>
+      <div class="meter" style="margin-top:6px"><div class="meter-top"><b>Comparing yourself</b><span>${s.comp.toFixed(1)}<small> / 5</small></span></div>
+        <div class="track"><i style="width:${(s.comp - 1) / 4 * 100}%;background:var(--sky)"></i></div><span class="lvl">${band(s.comp)}: how much what you see changes how you see yourself</span></div>
+    </div>
+    <div class="twin">
+      <div class="card center"><span class="eyebrow" style="color:var(--ink-muted)">Mind battery</span>
+        <div class="bat" role="img" aria-label="Mind battery ${filled} of 5">${[1,2,3,4,5].map(i => `<i class="${i <= filled ? "f" : ""}"></i>`).join("")}</div>
+        <span class="big">${s.ls}<small class="muted" style="font:700 14px var(--f-body)"> / 10</small></span><span class="small muted">life satisfaction</span></div>
+      <div class="card center"><span class="eyebrow" style="color:var(--ink-muted)">Daily time</span>
+        <span class="tile t-sky" style="width:64px;height:64px">${icon("clock")}</span>
+        <span class="big">${fmtMin(s.time)}</span><span class="small muted">your best estimate</span></div>
+    </div>
+    <div class="card"><h2 style="font-size:20px">What your answers show</h2>
+      ${insights(a).map(x => `<div class="insight"><span class="tile ${x.t}">${icon(x.ic)}</span><div><b>${esc(x.b)}</b><span>${esc(x.s)}</span></div></div>`).join("")}
+    </div>
+    ${concern ? `<div class="card support"><h2 style="font-size:20px">It might help to talk to someone</h2>
+      <p class="muted">Things seem heavy right now. Talking to someone you trust, your university's support service or a helpline can help.</p>
+      <p class="small">Emergency anywhere in the EU: <span class="num">112</span>. <a href="https://www.mentalhealtheurope.org/library/youth-helplines/" target="_blank" rel="noopener">Youth helplines by country</a></p></div>` : ""}
+    <div class="btn-row">
+      <button class="btn btn-primary" id="toPlan">Open my 4-week plan</button>
+      <button class="btn btn-ghost" id="retake">Retake the check</button>
+    </div>`;
+  $("#toPlan").onclick = () => setView("plan");
+  $("#retake").onclick = startQuiz;
+  $("#real") && ($("#real").onclick = startQuiz);
+}
+
+/* ------------------------------------------------------------ PLAN */
+function levelIndex(done, total) { return total ? clamp(Math.floor(done / total * 5), 0, 4) : 0; }
+function levelHTML(done, total) {
+  const li = levelIndex(done, total);
+  return `<div class="card levelcard">
+    <div class="meter-top"><b>Level ${li + 1}: ${LEVELS[li]}</b><small>${done} of ${total} done</small></div>
+    <div class="track" style="height:18px"><i style="width:${total ? done / total * 100 : 0}%"></i></div>
+    <div class="lv">${LEVELS.map((l, i) => `<span class="${i < li ? "done" : i === li ? "now" : ""}"><i></i>${l}</span>`).join("")}</div>
+  </div>`;
+}
+function actHTML(a, done, inPlan) {
+  const effort = ["", "Easy", "Medium", "Bigger step"][a.e];
+  const tags = `<div class="am"><span class="tag">${CATS[a.cat]}</span><span class="tag fit">${effort}</span>${a.yes != null ? `<span class="tag q">${a.yes}% said Yes in our survey</span>` : ""}</div>`;
+  if (!inPlan) return `<li class="act"><div><div class="at">${esc(a.title)}</div><div class="ah">${esc(a.how)}</div>${tags}
+    <div class="addto"><span>Add to week</span>${[1,2,3,4].map(w => `<button data-add="${a.id}" data-w="${w - 1}" aria-label="Add to week ${w}">${w}</button>`).join("")}</div></div></li>`;
+  const go = a.link === "news" ? `<button class="planlink" data-go="news">Open today's good news</button>` : "";
+  return `<li class="act ${done ? "done" : ""}">
+    <button class="tick" data-tick="${a.id}" aria-pressed="${done}" aria-label="Mark ${esc(a.title)} as done">${icon("tick")}</button>
+    <div><div class="at">${esc(a.title)}</div><div class="ah">${esc(a.how)}</div>${tags}${go}</div>
+    <button class="rm" data-rm="${a.id}" aria-label="Remove ${esc(a.title)}">${icon("x").replace("<svg", '<svg width="16" height="16"')}</button></li>`;
+}
+function renderPlan() {
+  const el = $("#v-plan"), R = S.saved.result, plan = S.saved.plan;
+  if (!R || !plan) {
+    el.innerHTML = `<div class="hero"><span class="eyebrow">My plan</span><h1>Your plan starts with the check</h1>
+      <p class="lede">Answer 16 quick questions and get about ten small actions over four weeks.</p></div>
+      <div class="btn-row"><button class="btn btn-primary" id="ps">Start the check</button><button class="btn btn-ghost" id="pe">See an example plan</button></div>`;
+    $("#ps").onclick = () => { setView("check"); startQuiz(); };
+    $("#pe").onclick = () => { finish({ ...EXAMPLE }, true); setView("plan"); };
+    return;
+  }
+  el.className = "view" + (S.enter ? " stagger" : "");
+  const inPlan = new Set(plan.weeks.flat()), total = inPlan.size, done = [...inPlan].filter(id => plan.done[id]).length;
+  const pool = ACTIONS.filter(x => !inPlan.has(x.id) && (S.cat === "all" || x.cat === S.cat));
+  el.innerHTML = `
+    <div class="hero" style="gap:8px"><span class="eyebrow">My plan${R.example ? ", example" : ""}</span>
+      <h1 style="font-size:36px">Four weeks, <span class="hl-sun">your call</span></h1>
+      <p class="muted">Picked for <b>${PROFILES[R.scores.profile].name}</b> and your goal. Swap anything you like.</p></div>
+    ${levelHTML(done, total)}
+    ${plan.weeks.map((ids, w) => `<div class="week"><div class="week-h"><h2>Week ${w + 1}: ${WEEKS[w].name}</h2><span>${WEEKS[w].sub}</span></div>
+      ${ids.length ? `<ul class="acts">${ids.map(id => actHTML(ACT[id], !!plan.done[id], true)).join("")}</ul>` : `<p class="empty">Nothing this week yet. Add one from the list below.</p>`}</div>`).join("")}
+    <div class="week pool"><div class="week-h"><h2>More actions</h2><span>${ACTIONS.length - total} to choose from</span></div>
+      <div class="filt" role="group" aria-label="Filter">${[["all","All"], ...Object.entries(CATS)].map(([k, l]) => `<button data-cat="${k}" aria-pressed="${S.cat === k}">${l}</button>`).join("")}</div>
+      ${pool.length ? `<ul class="acts">${pool.map(x => actHTML(x, false, false)).join("")}</ul>` : `<p class="empty">Everything here is already in your plan.</p>`}</div>
+    <div class="card"><b>Keep it with you</b><p class="small muted">Copy your plan into your notes or calendar.</p>
+      <button class="btn btn-ghost" id="copy">Copy plan as text</button><p class="toast" id="toast" aria-live="polite"></p><div id="fb"></div></div>`;
+  el.querySelectorAll("[data-tick]").forEach(b => b.onclick = () => {
+    const id = b.dataset.tick; plan.done[id] = !plan.done[id]; save(); renderPlan(); renderBadgeCount();
+    // a small pop only when something gets done, never when it is unticked
+    if (plan.done[id]) el.querySelector(`[data-tick="${id}"]`)?.classList.add("pop");
+  });
+  el.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
+    const id = b.dataset.rm, w = plan.weeks.findIndex(ws => ws.includes(id)), i = plan.weeks[w].indexOf(id), wasDone = !!plan.done[id];
+    plan.weeks[w].splice(i, 1); delete plan.done[id]; save(); renderPlan();
+    // removing is one tap, so it must be one tap to take back
+    showUndo(`Removed “${ACT[id].title}”`, () => { plan.weeks[w].splice(i, 0, id); if (wasDone) plan.done[id] = true; save(); renderPlan(); });
+  });
+  el.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { plan.weeks[+b.dataset.w].push(b.dataset.add); save(); renderPlan(); });
+  el.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { S.cat = b.dataset.cat; renderPlan(); });
+  el.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setView(b.dataset.go));
+  $("#copy").onclick = async () => {
+    const txt = [`My Scroll Check plan (${PROFILES[R.scores.profile].name})`, "",
+      ...plan.weeks.flatMap((ids, w) => [`Week ${w + 1}: ${WEEKS[w].name}`, ...ids.map(id => `[${plan.done[id] ? "x" : " "}] ${ACT[id].title}`), ""])].join("\n");
+    try { await navigator.clipboard.writeText(txt); $("#toast").textContent = "Copied. Paste it into your notes."; }
+    catch { $("#fb").innerHTML = `<textarea class="fb" id="fbt" readonly aria-label="Your plan as text">${esc(txt)}</textarea>`; $("#fbt").select(); $("#toast").textContent = "Select the text below and copy it."; }
+  };
+}
+
+/* ------------------------------------------------------------ PROGRESS */
+function badges() {
+  const plan = S.saved.plan, d = plan ? plan.done : {}, ids = plan ? plan.weeks.flat() : [];
+  const nDone = ids.filter(id => d[id]).length, c = (S.saved.checkins || []).length;
+  return [
+    { ic:"heart", l:"Checked in", on:!!S.saved.result },
+    { ic:"check", l:"First step", on:nDone >= 1 },
+    { ic:"moon", l:"Night owl tamed", on:!!(d.M03 || d.M08) },
+    { ic:"users", l:"Feed cleaner", on:!!(d.M04 || d.A02 || d.A03) },
+    { ic:"sun", l:"3-day streak", on:c >= 3 },
+    { ic:"trophy", l:"Week 1 done", on:plan ? plan.weeks[0].length > 0 && plan.weeks[0].every(id => d[id]) : false },
+    { ic:"leaf", l:"Good news, 3 days", on:(S.saved.news?.days || []).length >= 3 },
+    { ic:"smile", l:"5 smiles", on:(S.saved.news?.smiles || []).length >= 5 },
+  ];
+}
+
+/* ------------------------------------------------------------ GOOD NEWS */
+let newsObs = null;
+function renderNews() {
+  const el = $("#v-news"), list = todaysNews(), t = today();
+  const N = S.saved.news ||= { date:t, seen:[], smiles:[], days:[] };
+  if (N.date !== t) { N.date = t; N.seen = []; }
+  const seen = new Set(N.seen), smiles = new Set(N.smiles), nSeen = list.filter(x => seen.has(x.id)).length;
+  const inPlan = S.saved.plan?.weeks.flat().includes("A07");
+  el.className = "view" + (S.enter ? " stagger" : "");
+  el.innerHTML = `
+    <div class="hero" style="gap:8px"><span class="eyebrow">Good news</span>
+      <h1 style="font-size:36px">Five good things, <span class="hl-sun">then done</span></h1>
+      <p class="muted">Short, true stories about nature, animals, science and people working together. A fixed five a day, never an endless feed.</p>
+      <div class="ndots" role="img" aria-label="${nSeen} of ${list.length} read today">${list.map(x => `<i class="${seen.has(x.id) ? "on" : ""}" data-dot="${x.id}"></i>`).join("")}<span id="ncount">${nSeen} of ${list.length}</span></div></div>
+    ${inPlan ? `<p class="note"><b>Part of your plan:</b> Good news first. Read these instead of your first feed of the day.</p>` : ""}
+    ${list.map(x => { const c = NEWS_CATS[x.cat]; return `<article class="card story" data-story="${x.id}">
+      <div class="nh"><span class="tile ${c.t}">${icon(c.ic)}</span><div><div class="ncat">${c.l}</div><div class="nplace">${esc(x.place)}, ${esc(x.when)}</div></div></div>
+      <h2>${esc(x.title)}</h2>
+      <p class="body">${esc(x.body)}</p>
+      <div class="nwin">${icon("sun")}${esc(x.win)}</div>
+      <div class="nfoot"><a href="${x.url}" target="_blank" rel="noopener">Source: ${esc(x.src)}</a>
+        <button class="smile" data-smile="${x.id}" aria-pressed="${smiles.has(x.id)}">${icon("smile")}${smiles.has(x.id) ? "Made me smile" : "This made me smile"}</button></div>
+    </article>`; }).join("")}
+    <div class="card done-card"><span class="tile">${icon("check")}</span>
+      <h2 style="font-size:24px">You're all caught up</h2>
+      <p class="muted">That's today's five. New good news tomorrow. Maybe tell someone about the one you liked best.</p>
+      <button class="btn btn-ghost" id="nplan" style="max-width:280px">${S.saved.plan ? "Back to my plan" : "Take the check"}</button></div>
+    <details class="card rules"><summary>How we pick stories</summary>
+      <ul><li>Wins of many: nature, animals, science and communities working together.</li>
+        <li>No prizes, rankings, ages or rich lists, and no stories that invite you to measure yourself against one person.</li>
+        <li>No likes, no follower counts, no comments.</li>
+        <li>Every story is true and links to its source.</li>
+        <li>Five a day, then the feed ends.</li></ul></details>`;
+  el.querySelectorAll("[data-smile]").forEach(b => b.onclick = () => {
+    const id = b.dataset.smile, s = new Set(N.smiles); s.has(id) ? s.delete(id) : s.add(id); N.smiles = [...s]; save();
+    const on = s.has(id); b.setAttribute("aria-pressed", on); b.innerHTML = icon("smile") + (on ? "Made me smile" : "This made me smile");
+    if (on) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+    renderBadgeCount();
+  });
+  $("#nplan").onclick = () => { if (S.saved.plan) setView("plan"); else { setView("check"); startQuiz(); } };
+  // a story counts as read once most of it has been on screen; reading all five marks the day
+  newsObs?.disconnect();
+  if ("IntersectionObserver" in window) {
+    newsObs = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      const id = e.target.dataset.story; if (N.seen.includes(id)) return;
+      N.seen.push(id); el.querySelector(`[data-dot="${id}"]`)?.classList.add("on");
+      const n = list.filter(x => N.seen.includes(x.id)).length; $("#ncount").textContent = `${n} of ${list.length}`;
+      if (n === list.length && !N.days.includes(t)) { N.days.push(t); renderBadgeCount(); }
+      save();
+    }), { threshold:.6 });
+    el.querySelectorAll("[data-story]").forEach(a => newsObs.observe(a));
+  }
+}
+function renderBadgeCount() {
+  const n = badges().filter(b => b.on).length;
+  $("#bc").innerHTML = `<i>${icon("trophy")}</i><span>${n}</span>`;
+  $("#bc").setAttribute("aria-label", `${n} badges earned`);
+}
+function weekDays() {
+  const now = new Date(), dow = (now.getDay() + 6) % 7, monday = new Date(now); monday.setDate(now.getDate() - dow);
+  return Array.from({ length:7 }, (_, i) => { const x = new Date(monday); x.setDate(monday.getDate() + i); return x.toISOString().slice(0, 10); });
+}
+function renderProgress() {
+  const el = $("#v-progress"), R = S.saved.result, plan = S.saved.plan;
+  const ids = plan ? plan.weeks.flat() : [], done = ids.filter(id => plan.done[id]).length;
+  const checkins = new Set(S.saved.checkins || []), days = weekDays(), t = today(), inWeek = days.filter(x => checkins.has(x)).length;
+  el.innerHTML = `
+    <div class="hero" style="gap:8px"><span class="eyebrow">Progress</span><h1 style="font-size:36px">Small wins <span class="hl-sun">add up</span></h1>
+      <p class="muted">${R ? "Tick off actions and check in each day you stick to your plan." : "Take the check first to unlock your plan and badges."}</p></div>
+    ${levelHTML(done, ids.length)}
+    <div class="card"><div class="meter-top"><b>Streak this week</b><small>${inWeek} of 7 days</small></div>
+      <div class="days">${days.map((x, i) => `<div><div class="d ${checkins.has(x) ? "y" : ""} ${x === t ? "today" : ""}">${icon("tick")}</div>${"MTWTFSS"[i]}</div>`).join("")}</div>
+      <button class="btn ${checkins.has(t) ? "btn-ghost" : "btn-primary"}" id="ci" ${R ? "" : "disabled"}>${checkins.has(t) ? "Checked in today" : "I stuck to my plan today"}</button></div>
+    <div class="card"><b style="font:600 20px var(--f-display)">Badges</b>
+      <div class="badges">${badges().map(b => `<div class="bd ${b.on ? "" : "lock"}"><i>${icon(b.ic)}</i>${b.l}</div>`).join("")}</div></div>
+    <div class="card"><b style="font:600 20px var(--f-display)">In four weeks</b><p class="small muted">Retake the check and see how your pull, comparing and mind battery have changed.</p>
+      <button class="btn btn-ghost" id="rt">Retake the check</button></div>`;
+  $("#ci").onclick = () => { if (!R) return; const set = new Set(S.saved.checkins || []); set.has(t) ? set.delete(t) : set.add(t); S.saved.checkins = [...set]; save(); renderProgress(); renderBadgeCount(); };
+  $("#rt").onclick = () => { setView("check"); startQuiz(); };
+}
+
+/* ------------------------------------------------------------ ABOUT */
+function renderAbout() {
+  $("#v-about").innerHTML = `<div class="prose">
+    <span class="eyebrow">About</span>
+    <h1 style="font-size:34px">less scrolling, <span class="hl">more living</span></h1>
+    <p>Scroll Check is a prototype by ScrollWell Europe, a fictional NGO created for a NOVA IMS market research project. It helps people aged 18 to 29 see how social media affects them and pick small changes they will stick to.</p>
+    <h2>Built on our questionnaire</h2>
+    <ul>
+      <li><b>Habits:</b> the same questions as our survey (time, apps, nights, mornings, trigger).</li>
+      <li><b>Pull of the apps:</b> four statements about a typical week (survey Q18).</li>
+      <li><b>Comparing yourself:</b> four statements (survey Q19).</li>
+      <li><b>Life satisfaction:</b> one question from 0 to 10 (survey Q15).</li>
+      <li><b>Actions:</b> the ten actions rated No, Maybe or Yes in survey Q25. Actions more people said Yes to come first (first 20 answers, October 2026).</li>
+    </ul>
+    <h2>No comparison</h2>
+    <p>You only see your own answers. There is no ranking against other people, because comparing is part of what makes social media hard.</p>
+    <h2>Good news</h2>
+    <p>Five short, true stories a day about nature, animals, science and communities, each with its source. We leave out prizes, rankings and individual high achievers, so there is no one to measure yourself against. When the five are read, the feed ends.</p>
+    <h2>Privacy</h2>
+    <p>Everything runs in your browser. Answers, plan and ticks stay on this device.</p>
+    <h2>Not a diagnosis</h2>
+    <p>Scores describe patterns, not conditions. If you are struggling, talk to someone you trust or a professional.</p>
+    <div class="help"><span><b>Need to talk to someone?</b> Emergency anywhere in the EU: <span class="num">112</span>.</span>
+      <span>Youth helplines by country: <a href="https://www.mentalhealtheurope.org/library/youth-helplines/" target="_blank" rel="noopener">Mental Health Europe</a></span>
+      <span>Prototype by team Lost in Translation, NOVA IMS Market Research 2026/27.</span></div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------ undo snackbar */
+let undoTimer = null;
+function showUndo(text, undo) {
+  const el = $("#undo");
+  $("#undoText").textContent = text;
+  $("#undoBtn").onclick = () => { clearTimeout(undoTimer); el.hidden = true; undo(); };
+  el.hidden = false;
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { el.hidden = true; }, 5000);
+}
+
+/* ------------------------------------------------------------ boot */
+(function boot() {
+  document.querySelectorAll("[data-icon]").forEach(s => s.innerHTML = icon(s.dataset.icon));
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => setView(t.dataset.view));
+  $("#home").onclick = () => { S.screen = "intro"; setView("check"); };
+  if (S.saved.result) S.screen = "result";
+  const go = () => { const h = (location.hash || "").slice(1); setView(["plan","news","progress","about"].includes(h) ? h : "check", false); };
+  window.addEventListener("hashchange", go);
+  const edge = () => document.body.classList.toggle("scrolled", window.scrollY > 4);
+  window.addEventListener("scroll", edge, { passive:true }); edge();
+  go();
+})();
+</script>
+</body>
+</html>
